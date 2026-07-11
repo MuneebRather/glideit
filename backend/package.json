@@ -4,8 +4,7 @@
   "description": "GlideIt backend API",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "start": "node src/index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -17,8 +16,5 @@
     "@aws-sdk/s3-request-presigner": "^3.450.0",
     "dotenv": "^16.3.1",
     "cors": "^2.8.5"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
   }
 }
