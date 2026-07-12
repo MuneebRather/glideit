@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { Network, Loader2 } from 'lucide-react';
 
 const NetworkTraffic = () => {
   const [networks, setNetworks] = useState([]);
@@ -21,10 +22,17 @@ const NetworkTraffic = () => {
   };
 
   return (
-    <div className="analyzer-card">
-      <h3>Network Traffic</h3>
+    <div className="card">
+      <div className="card-header">
+        <div className="card-title">
+          <div className="card-icon"><Network /></div>
+          Network Traffic
+        </div>
+      </div>
       {loading ? (
-        <p>Loading...</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
+          <Loader2 size={16} className="spin-icon" /> Loading...
+        </div>
       ) : (
         <div className="network-list">
           {networks.map((net, idx) => (
@@ -34,7 +42,7 @@ const NetworkTraffic = () => {
                 <span className="network-driver">{net.driver}</span>
               </div>
               <div className="network-containers">
-                Connected: {net.containers.length} containers
+                {net.containers.length} containers connected
               </div>
             </div>
           ))}

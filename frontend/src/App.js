@@ -8,44 +8,44 @@ import ActivityStream from './components/ActivityStream';
 import UserDirectory from './components/UserDirectory';
 
 const PrivateRoute = ({ children, adminOnly }) => {
-  const { user } = useAuth();
-  
-  if (!user) return <Navigate to="/" />;
-  if (adminOnly && user.role !== 'admin') return <Navigate to="/vault" />;
-  
-  return children;
+    const { user } = useAuth();
+
+    if (!user) return <Navigate to="/" />;
+    if (adminOnly && user.role !== 'admin') return <Navigate to="/vault" />;
+
+    return children;
 };
 
 const App = () => {
-  return (
-    <AuthProvider>
-      <Router>
+    return (
+        <AuthProvider>
+        <Router>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/vault" element={
+        <Route path="/" element={<Login />} />
+        <Route path="/vault" element={
             <PrivateRoute>
-              <MyVault />
+            <MyVault />
             </PrivateRoute>
-          } />
-          <Route path="/dashboard" element={
+        } />
+        <Route path="/dashboard" element={
             <PrivateRoute adminOnly>
-              <ContainerDashboard />
+            <ContainerDashboard />
             </PrivateRoute>
-          } />
-          <Route path="/activity" element={
+        } />
+        <Route path="/activity" element={
             <PrivateRoute adminOnly>
-              <ActivityStream />
+            <ActivityStream />
             </PrivateRoute>
-          } />
-          <Route path="/users" element={
+        } />
+        <Route path="/users" element={
             <PrivateRoute adminOnly>
-              <UserDirectory />
+            <UserDirectory />
             </PrivateRoute>
-          } />
+        } />
         </Routes>
-      </Router>
-    </AuthProvider>
-  );
+        </Router>
+        </AuthProvider>
+    );
 };
 
 export default App;

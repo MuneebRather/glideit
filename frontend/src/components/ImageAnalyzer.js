@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { Image as ImageIcon, Loader2 } from 'lucide-react';
 
 const ImageAnalyzer = () => {
   const [images, setImages] = useState([]);
@@ -25,11 +26,20 @@ const ImageAnalyzer = () => {
     return mb.toFixed(1) + ' MB';
   };
 
+  const maxSize = Math.max(...images.map(i => i.size), 1);
+
   return (
-    <div className="analyzer-card">
-      <h3>Image Analyzer</h3>
+    <div className="card">
+      <div className="card-header">
+        <div className="card-title">
+          <div className="card-icon"><ImageIcon /></div>
+          Image Analyzer
+        </div>
+      </div>
       {loading ? (
-        <p>Loading...</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-secondary)' }}>
+          <Loader2 size={16} className="spin-icon" /> Loading...
+        </div>
       ) : (
         <div className="image-list">
           {images.map((img, idx) => (
@@ -38,18 +48,9 @@ const ImageAnalyzer = () => {
                 <span className="image-name">{img.repoTags[0]}</span>
                 <span className="image-size">{formatSize(img.size)}</span>
               </div>
-              <div className="image-meta">
-                <span>Layers: {img.layers}</span>
-                <span>ID: {img.id.substring(7, 19)}</span>
-              </div>
+              <div className="image-meta">Layers: {img.layers} • ID: {img.id.substring(7, 19)}</div>
               <div className="layer-bar">
-                {Array.from({ length: img.layers }).map((_, i) => (
-                  <div 
-                    key={i} 
-                    className="layer-segment" 
-                    style={{ width: `${100 / img.layers}%` }}
-                  />
-                ))}
+                <div className="layer-bar-fill" style={{ width: `${(img.size / maxSize) * 100}%` }} />
               </div>
             </div>
           ))}
