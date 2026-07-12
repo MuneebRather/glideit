@@ -84,7 +84,7 @@ GlideIt was built to go beyond a typical CRUD app and demonstrate an end-to-end 
 - `glideit-frontend` — React build + Nginx reverse proxy
 - `glideit-backend` — Express API + JWT auth + S3 integration
 - `glideit-mongodb` — MongoDB with persistent volume
-- `glideit-monitor` — Docker Engine API monitoring service
+- `glideit-monitor` — Docker Engine API monitoring service; only container with `docker.sock` access
 
 ## 📸 Screenshots
 
@@ -268,6 +268,7 @@ Open `http://YOUR_EC2_PUBLIC_IP` in a browser.
 - Nginx reverse proxy with API routing
 - Admin-only routes protected by middleware
 - Security group — SSH restricted to a specific IP, HTTP open
+- Docker socket isolation — only `docker-monitor` mounts `docker.sock` (read-only); backend reaches it over the internal network, never directly
 
 ## 🎯 Skills Demonstrated
 
@@ -289,6 +290,7 @@ Open `http://YOUR_EC2_PUBLIC_IP` in a browser.
 - Docker
 - Docker Compose
 - Nginx Reverse Proxy
+- Container Security (least-privilege Docker socket access)
 
 ### AWS
 - EC2
