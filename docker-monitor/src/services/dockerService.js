@@ -20,19 +20,42 @@ const getContainerStats = async (id) => {
   const container = docker.getContainer(id);
   const stats = await container.stats({ stream: false });
   
-  const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
-  const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
-  const cpuPercent = systemDelta > 0 ? (cpuDelta / systemDelta) * 100 : 0;
+  let cpuPercent = 0;
+  let memoryMB = 0;
+  let memoryLimitMB = 512;
+  let networkRx = 0;
+  let networkTx = 0;
   
-  const memoryUsage = stats.memory_stats.usage || 0;
-  const memoryLimit = stats.memory_stats.limit || 1;
+  try {
+    // CPU calculation
+    const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - (stats.precpu_stats?.cpu_usage?.total_usage || 0);
+    const systemDelta = stats.cpu_stats.system_cpu_usage - (stats.precpu_stats?.system_cpu_usage || 0);
+    const cpuCount = stats.cpu_stats.online_cpus || 1;
+    
+    if (systemDelta > 0 && cpuDelta > 0) {
+      cpuPercent = (cpuDelta / systemDelta) * cpuCount * 100;
+    }
+    
+    // Memory
+    memoryMB = (stats.memory_stats.usage || 0) / 1024 / 1024;
+    memoryLimitMB = (stats.memory_stats.limit || 536870912) / 1024 / 1024;
+    
+    // Network
+    if (stats.networks) {
+      const network = Object.values(stats.networks)[0];
+      networkRx = network?.rx_bytes || 0;
+      networkTx = network?.tx_bytes || 0;
+    }
+  } catch (err) {
+    console.error('Stats calculation error:', err.message);
+  }
   
   return {
-    cpuPercent: parseFloat(cpuPercent.toFixed(2)),
-    memoryMB: parseFloat((memoryUsage / 1024 / 1024).toFixed(2)),
-    memoryLimitMB: parseFloat((memoryLimit / 1024 / 1024).toFixed(2)),
-    networkRx: stats.networks ? Object.values(stats.networks)[0].rx_bytes : 0,
-    networkTx: stats.networks ? Object.values(stats.networks)[0].tx_bytes : 0
+    cpuPercent: parseFloat(Math.min(cpuPercent, 100).toFixed(2)),
+    memoryMB: parseFloat(memoryMB.toFixed(2)),
+    memoryLimitMB: parseFloat(memoryLimitMB.toFixed(2)),
+    networkRx,
+    networkTx
   };
 };
 
@@ -71,14 +94,22 @@ const getVolumes = async () => {
 
 const getNetworks = async () => {
   const networks = await docker.listNetworks();
+  const containers = await docker.listContainers();
+  
   return networks
     .filter(n => n.Name.includes('glideit'))
-    .map(n => ({
-      name: n.Name,
-      id: n.Id,
-      driver: n.Driver,
-      containers: Object.keys(n.Containers || {})
-    }));
+    .map(n => {
+      const connectedContainers = containers
+        .filter(c => c.NetworkSettings?.Networks?.[n.Name])
+        .map(c => c.Names[0].replace('/', ''));
+      
+      return {
+        name: n.Name,
+        id: n.Id,
+        driver: n.Driver,
+        containers: connectedContainers
+      };
+    });
 };
 
 module.exports = {
