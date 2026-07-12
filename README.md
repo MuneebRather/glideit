@@ -32,46 +32,53 @@ GlideIt was built to go beyond a typical CRUD app and demonstrate an end-to-end 
 ## ☁️ AWS Architecture
 
 ```
-          User Browser
+                    User Browser
                           │
                           ▼
            ┌──────────────────────────────┐
-           │      AWS EC2 (t2.micro)       │
-           │    Ubuntu 22.04 LTS            │
-           │    IAM Role: glideit-ec2-role  │
+           │      AWS EC2 (t2.micro)      │
+           │       Ubuntu 22.04 LTS       │
+           │   IAM Role: glideit-ec2-role │
            └──────────────┬───────────────┘
                           │
-                          ▼
-                 ┌────────────────┐
-                 │     Nginx      │
-                 │     :80        │
-                 │  (React + API  │
-                 │   proxy)       │
-                 └───────┬────────┘
-                         │
-              ┌──────────┴──────────┐
-              │                     │
-              ▼                     ▼
-      ┌──────────┐          ┌────────────┐
-      │  React   │          │  Backend   │
-      │  Static  │          │  (5000)    │
-      │  Files   │          │  Express   │
-      │          │          │  JWT Auth  │
-      └──────────┘          └─────┬──────┘
-                                   │
-                    ┌──────────────┼──────────────┐
-                    │              │              │
-                    ▼              ▼              ▼
-             ┌────────────┐ ┌────────────┐ ┌──────────────┐
-             │  MongoDB   │ │  AWS S3    │ │   Docker     │
-             │  (Volume)  │ │  Bucket    │ │   Monitor    │
-             │            │ │ (IAM Role) │ │   (8080)     │
-             └────────────┘ └────────────┘ │   Internal   │
-                                            └──────┬───────┘
-                                                   │
-                                                   ▼
-                                              Docker.sock
-                                          (read-only bind mount)
+   ┌──────────────────────┼───────────────────────────────────┐
+   │  Docker Compose Network: glideit_default                 │
+   │                      ▼                                   │
+   │             ┌────────────────┐                           │
+   │             │     Nginx      │                           │
+   │             │     :80        │                           │
+   │             │  (React + API  │                           │
+   │             │   proxy)       │                           │
+   │             └───────┬────────┘                           │
+   │                     │                                    │
+   │          ┌──────────┴──────────┐                         │
+   │          │                     │                         │
+   │          ▼                     ▼                         │
+   │  ┌──────────┐          ┌────────────┐                    │
+   │  │  React   │          │  Backend   │                    │
+   │  │  Static  │          │  (5000)    │                    │
+   │  │  Files   │          │  Express   │                    │
+   │  │          │          │  JWT Auth  │                    │
+   │  └──────────┘          └─────┬──────┘                    │
+   │                              │                           │
+   │               ┌──────────────┼──────────────┐            │
+   │               │              │              │            │
+   │               ▼              │              ▼            │
+   │        ┌────────────┐        │       ┌──────────────┐    │
+   │        │  MongoDB   │        │       │   Docker     │    │
+   │        │  (Volume)  │        │       │   Monitor    │    │
+   │        │            │        │       │   (8080)     │    │
+   │        └────────────┘        │       │  no exposed  │    │
+   │                              │       │  port        │    │
+   │                              │       └──────┬───────┘    │
+   └──────────────────────────────┼──────────────┼────────────┘
+                                  │              │
+                                  ▼              ▼
+                            ┌────────────┐   Docker.sock
+                            │  AWS S3    │  (read-only bind mount,
+                            │  Bucket    │   host resource, not
+                            │ (IAM Role) │   on the container network)
+                            └────────────┘
 ```
 
 **AWS services used**
@@ -291,6 +298,7 @@ Open `http://YOUR_EC2_PUBLIC_IP` in a browser.
 - Docker Compose
 - Nginx Reverse Proxy
 - Container Security (least-privilege Docker socket access)
+- Docker Networking (internal-only services, no published ports on `docker-monitor`)
 
 ### AWS
 - EC2
