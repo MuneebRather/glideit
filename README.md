@@ -32,36 +32,46 @@ GlideIt was built to go beyond a typical CRUD app and demonstrate an end-to-end 
 ## ☁️ AWS Architecture
 
 ```
-                       User Browser
-                            │
-                            ▼
-            ┌────────────────────────────────┐
-            │       AWS EC2 (t2.micro)        │
-            │       Ubuntu 22.04 LTS          │
-            │   IAM Role: glideit-ec2-role    │
-            └────────────────┬─────────────────┘
-                              │
-            ┌─────────────────┼──────────────────┐
-            │                 │                  │
-            ▼                 ▼                  ▼
-      ┌───────────┐     ┌───────────┐     ┌───────────────┐
-      │   Nginx   │     │  Backend  │     │ Docker Monitor│
-      │   :80     │     │  :5000    │     │    :8080      │
-      │  (React)  │     │ (Express, │     │   (SSE API)   │
-      │           │     │  JWT auth)│     │               │
-      └─────┬─────┘     └─────┬─────┘     └───────────────┘
-            │                 │
-            │                 ▼
-            │           ┌───────────┐
-            │           │  MongoDB  │
-            │           │  (volume) │
-            │           └─────┬─────┘
-            │                 │
-            └────────────►┌───────────┐
-                           │  AWS S3   │
-                           │  Bucket   │
-                           │(IAM role) │
-                           └───────────┘
+          User Browser
+                          │
+                          ▼
+           ┌──────────────────────────────┐
+           │      AWS EC2 (t2.micro)       │
+           │    Ubuntu 22.04 LTS            │
+           │    IAM Role: glideit-ec2-role  │
+           └──────────────┬───────────────┘
+                          │
+                          ▼
+                 ┌────────────────┐
+                 │     Nginx      │
+                 │     :80        │
+                 │  (React + API  │
+                 │   proxy)       │
+                 └───────┬────────┘
+                         │
+              ┌──────────┴──────────┐
+              │                     │
+              ▼                     ▼
+      ┌──────────┐          ┌────────────┐
+      │  React   │          │  Backend   │
+      │  Static  │          │  (5000)    │
+      │  Files   │          │  Express   │
+      │          │          │  JWT Auth  │
+      └──────────┘          └─────┬──────┘
+                                   │
+                    ┌──────────────┼──────────────┐
+                    │              │              │
+                    ▼              ▼              ▼
+             ┌────────────┐ ┌────────────┐ ┌──────────────┐
+             │  MongoDB   │ │  AWS S3    │ │   Docker     │
+             │  (Volume)  │ │  Bucket    │ │   Monitor    │
+             │            │ │ (IAM Role) │ │   (8080)     │
+             └────────────┘ └────────────┘ │   Internal   │
+                                            └──────┬───────┘
+                                                   │
+                                                   ▼
+                                              Docker.sock
+                                          (read-only bind mount)
 ```
 
 **AWS services used**
