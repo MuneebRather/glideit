@@ -290,7 +290,3 @@ Open `http://YOUR_EC2_PUBLIC_IP` in a browser.
 
 ## 👤 Author
 **Muneeb Ahmad Rather**
-GitHub: (https://github.com/MuneebRather)
-
-## 📄 License
-MIT License
