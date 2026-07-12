@@ -3,13 +3,14 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN npm install --omit=dev
+
+RUN apk add --no-cache curl
 
 COPY src/ ./src/
 
 EXPOSE 5000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:5000/health || exit 1
-
+  CMD curl -f http://localhost:5000/health || exit 1
 CMD ["node", "src/index.js"]
